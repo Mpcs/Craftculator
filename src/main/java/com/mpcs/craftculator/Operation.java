@@ -1,41 +1,31 @@
-package com.example.examplemod;
+package com.mpcs.craftculator;
 
 import org.lwjgl.glfw.GLFW;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 public enum Operation {
     EMPTY(""),
     CLEAR("C"),
-    CLEAR_EVERYTHING("CE"),
+    CLEAR_ENTRY("CE"),
     REMOVE("<"),
     DOT("."),
     EQUALS("="),
-    ADD("+", Float::sum),
-    SUBTRACT("-", (a, b) -> a-b),
-    MULTIPLY("*", ((a, b) -> a*b)),
-    DIVIDE("/", ((a, b) -> b == 0 ?  0 : a/b));
+    ADD("+", (BigDecimal::add)),
+    SUBTRACT("-", BigDecimal::subtract),
+    MULTIPLY("*", (BigDecimal::multiply)),
+    DIVIDE("/", ((a, b) -> b.compareTo(BigDecimal.ZERO) == 0 ? BigDecimal.ZERO : a.divide(b, RoundingMode.HALF_UP)));
 
-    public interface Calculation {
-        float calculate(float a, float b);
-    }
-
-    private String value;
-    private Calculation functionality;
-
+    private final String value;
+    private final Calculation functionality;
     Operation(String v, Calculation functionality) {
         this.value = v;
         this.functionality = functionality;
     }
 
     Operation(String v) {
-        this(v, (a, b)-> 0);
-    }
-
-    public String getValue() {
-        return value;
-    }
-
-    public float calculate(float a, float b) {
-        return this.functionality.calculate(a, b);
+        this(v, (a, b) -> BigDecimal.ZERO);
     }
 
     public static Operation handleInput(int keycode, int modifiers) {
@@ -74,5 +64,17 @@ public enum Operation {
         }
 
         return EMPTY;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public BigDecimal calculate(BigDecimal a, BigDecimal b) {
+        return this.functionality.calculate(a, b);
+    }
+
+    public interface Calculation {
+        BigDecimal calculate(BigDecimal a, BigDecimal b);
     }
 }
